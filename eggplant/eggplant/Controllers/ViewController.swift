@@ -19,50 +19,36 @@ class ViewController: UIViewController,
     // MARK: - Atributos
     
     var delegate: AdicionaRefeicaoDelegate?
-    var itens: [Item] = [Item(nome: "Molho de tomate", calorias:40.0),
-                         Item(nome: "Queijo", calorias:40.0),
-                         Item(nome: "Molho apimentado", calorias:40.0),
-                         Item(nome: "Manjericao", calorias:40.0)]
-    
+    var itens: [Item] = []
     var itensSelecionados: [Item] = []
+    
+    let itensString = "itens"
     
     // MARK: - IBOutlets
     @IBOutlet var nomeTextField: UITextField?
     @IBOutlet weak var felicidadeTextField: UITextField?
-    @IBOutlet weak var itensTableView: UITableView!
+    @IBOutlet weak var itensTableView: UITableView?
     
     
     // MARK: - IBActions
     @IBAction func adicionar(_ sender: Any) {
         
-        guard let nomeDaRefeicao = nomeTextField?.text else {
-            return
-        }
-        
-        guard let felicidadeDaRefeicao = felicidadeTextField?.text, let felicidade = Int(felicidadeDaRefeicao) else {
-            return
-        }
-        
-        let refeicao = Refeicao(nome: nomeDaRefeicao, felicidade: felicidade, itens: itensSelecionados)
-        
-        print("comi \(refeicao.nome) e fiquei com felicidade: \(refeicao.felicidade)")
+        if let refeicao = recuperaRefeicaoDoFormulario() {
         delegate?.add(refeicao)
         navigationController?.popViewController(animated: true)
+        } else {
+            Alerta(controller: self).exibe(msg: "Algo deu errado")
+        }
     }
 
     //MARK: - View life cycle
     
     override func viewDidLoad() {
         let botaoAdicionaItem = UIBarButtonItem(title: "Add", style: .plain, target: self, action: #selector(adicionarItem))
+        itens = ItemDao().load()
         navigationItem.rightBarButtonItem = botaoAdicionaItem
     }
-    
-    @objc func adicionarItem() {
-        
-        let adicionarItensViewController = AdicionarItensViewController(delegate: self)
-        navigationController?.pushViewController(adicionarItensViewController, animated: true)
-    }
-    
+
     //MARK: - UITableViewDatraSource
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return itens.count
@@ -94,10 +80,32 @@ class ViewController: UIViewController,
 
         }
     }
-    //MARK: - Item table view
+    //MARK: - Funcs
     func add(_ item: Item) {
         itens.append(item)
-        itensTableView.reloadData()
+        if let tableView = itensTableView {
+            tableView.reloadData()
+        } else {
+            Alerta(controller: self).exibe("Desculpe", msg: "não foi possivel carregar a tela")
+        }
+        ItemDao().save(itens)
     }
+
+    func recuperaRefeicaoDoFormulario() -> Refeicao?     {
+        guard let nomeDaRefeicao = nomeTextField?.text,
+              let felicidadeDaRefeicao = felicidadeTextField?.text,
+              let felicidade = Int(felicidadeDaRefeicao) else {
+            return nil
+        }
+        return Refeicao(nome: nomeDaRefeicao, felicidade: felicidade, itens: itensSelecionados)
+    }
+    
+    @objc func adicionarItem() {
+        
+        let adicionarItensViewController = AdicionarItensViewController(delegate: self)
+        navigationController?.pushViewController(adicionarItensViewController, animated: true)
+    }
+    
+
     
 }

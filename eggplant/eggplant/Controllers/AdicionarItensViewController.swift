@@ -35,18 +35,15 @@ class AdicionarItensViewController: UIViewController {
     //MARK: - View life Cycle
     override func viewDidLoad() {
         super.viewDidLoad()
-
     }
-
     
     //MARK: IBAction
     @IBAction func adicionarItem(_ sender: Any) {
-        guard  let nome = itemNome.text, let calorias = itemCalorias.text,
-        let doubleCalorias = Double(calorias) else { return }
-                
-        let item = Item(nome: nome, calorias: doubleCalorias)
+        guard  let nome = itemNome.text, let calorias = itemCalorias.text else { return }
+        if let doubleCalorias = Double(calorias) {
+            let item = Item(nome: nome, calorias: doubleCalorias)
             delegate?.add(item)
-        navigationController?.popViewController(animated: true)
+            navigationController?.popViewController(animated: true)
+        }
     }
-    
 }
